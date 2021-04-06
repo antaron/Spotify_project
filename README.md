@@ -2,25 +2,13 @@
 
 Csapatnév: A jó, a rossz és az átlagos 
 
-Tagok: 
+Tagok:  
 
-Tagok 
+Gyönyörű Ágnes - IL4JJR 
 
-Neptun Kód 
+Antal Áron - PR56BP 
 
-Gyönyörű Ágnes 
-
-IL4JJR 
-
-Antal Áron 
-
-PR56BP 
-
-Lőrincz Barna Kálmán 
-
-IE0YXU 
-
- 
+Lőrincz Barna Kálmán - IE0YXU 
 
 Téma: Spotify elemzés és mild AI építés 
 
