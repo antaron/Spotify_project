@@ -12,7 +12,7 @@ client_secret = "9ef7ad359ebe492da8bd73054dad6cbc"
 client_credentials_manager = SpotifyClientCredentials(client_id=client_id, client_secret=client_secret)
 sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
 
-playlist_id='spotify:playlist:4anBPndViYRCuGgbfnKGh7' #insert your playlist id
+playlist_id='spotify:playlist:01uAr22ptrHaSQSrVlgsT5' #insert your playlist id
 results = sp.playlist(playlist_id) 
 
 """ saved = sp.current_user_saved_tracks()
@@ -79,6 +79,7 @@ artist_df = final_df.copy()
 #%%Elemzés 
 elemzes = final_df.describe()
 final_df.info()
+
 #%% Korrelációs mátrix 
 plt.figure(figsize=(8,8))
 sns.heatmap(final_df.corr(),annot=True)
@@ -87,6 +88,32 @@ sns.heatmap(final_df.corr(),annot=True)
 music_feature=features_df[['danceability','energy','loudness','speechiness',
 'acousticness','instrumentalness','liveness','valence','tempo','duration_ms']]
 
+feature_vizsgalat=features_df[['danceability','energy','speechiness',
+'acousticness','liveness','valence']]
+
+elemzes2 = feature_vizsgalat.mean()
+elemzes3 = elemzes2.sort_values(0,ascending = False).head(2)
+
+#%% 
+elemzes3 = elemzes3.to_frame()
+
+#%%
+elemzes3 = elemzes3.transpose()
+#%%
+elemzes3['First_max'] = 0
+elemzes3['First_min'] = 0
+elemzes3['Second_max'] = 0
+elemzes3['Second_min'] = 0
+
+elemzes3['First_max'] = elemzes3.iloc[0, 0] + 0.1
+elemzes3['First_min'] = elemzes3.iloc[0, 0] - 0.1
+elemzes3['Second_max'] = elemzes3.iloc[0, 1] + 0.1
+elemzes3['Second_min'] = elemzes3.iloc[0, 1] - 0.1
+
+first = elemzes3.columns[0]
+second = elemzes3.columns[1]
+
+#%%
 min_max_scaler = MinMaxScaler()
 music_feature.loc[:]=min_max_scaler.fit_transform(music_feature.loc[:])
 
@@ -216,3 +243,77 @@ plt.figure(figsize=(12, 7))
 ax= sns.barplot(x='count', y="előadó", data=new2)
 ax.set_xlabel('előfodulás a listában')
 ax.set_title('Top 20 előadó')
+
+
+
+#%% Global 50
+playlist_id_global='spotify:playlist:37i9dQZEVXbMDoHDwVN2tF' #insert your playlist id
+results_global = sp.playlist(playlist_id_global) 
+
+""" saved = sp.current_user_saved_tracks()
+print(saved)  """
+#%%Lista generálás
+
+# create a list of song ids
+ids = []
+
+for item in results_global['tracks']['items']:
+    track = item['track']['id']
+    ids.append(track)
+
+song_meta = {'id': [], 'album': [], 'name': [],
+             'artist': [], 'explicit': [], 'popularity': []}
+
+for song_id in ids:
+    # get song's meta data
+    meta = sp.track(song_id)
+
+    # song id
+    song_meta['id'].append(song_id)
+
+    # album name
+    album = meta['album']['name']
+    song_meta['album'] += [album]
+
+    # song name
+    song = meta['name']
+    song_meta['name'] += [song]
+
+    # artists name
+    s = ', '
+    artist = s.join([singer_name['name'] for singer_name in meta['artists']])
+    song_meta['artist'] += [artist]
+
+    # explicit: lyrics could be considered offensive or unsuitable for children
+    explicit = meta['explicit']
+    song_meta['explicit'].append(explicit)
+
+    # song popularity
+    popularity = meta['popularity']
+    song_meta['popularity'].append(popularity)
+
+song_meta_df = pd.DataFrame.from_dict(song_meta)
+#%%
+# check the song feature
+features_global = sp.audio_features(song_meta['id'])
+# change dictionary to dataframe
+features_df_global = pd.DataFrame.from_dict(features)
+
+# convert milliseconds to mins
+# duration_ms: The duration of the track in milliseconds.
+# 1 minute = 60 seconds = 60 × 1000 milliseconds = 60,000 ms
+features_df_global['duration_ms'] = features_df_global['duration_ms'] / 60000
+
+#%% combine two dataframe - final data létrehozása
+global_final_df = song_meta_df.merge(features_df)
+
+feature_vizsgalat_global=global_final_df[['album','artist','name','danceability','energy','speechiness',
+'acousticness','liveness','valence']]
+
+spike_cols = [col for col in feature_vizsgalat_global.columns if first in col]
+
+feature_vizsgalat_global.loc[(feature_vizsgalat_global[first] < elemzes3.iloc[0, 2]) & (feature_vizsgalat_global[first] > elemzes3.iloc[0, 3]) & (feature_vizsgalat_global[second] < elemzes3.iloc[0, 4]) & (feature_vizsgalat_global[second] > elemzes3.iloc[0, 5]) , 'recomended'] = "Teljes egyezés"
+feature_vizsgalat_global.loc[((feature_vizsgalat_global[first] < elemzes3.iloc[0, 2]) & (feature_vizsgalat_global[first] > elemzes3.iloc[0, 3])) | ((feature_vizsgalat_global[second] < elemzes3.iloc[0, 4]) & (feature_vizsgalat_global[second] > elemzes3.iloc[0, 5])) & ((feature_vizsgalat_global[first] < elemzes3.iloc[0, 2]) & (feature_vizsgalat_global[first] > elemzes3.iloc[0, 3]) & (feature_vizsgalat_global[second] < elemzes3.iloc[0, 4]) & (feature_vizsgalat_global[second] > elemzes3.iloc[0, 5])) == False , "recomended"] = "Részleges egyezés"
+feature_vizsgalat_global.loc[feature_vizsgalat_global["recomended"].isnull(), "recomended"] = "Nem ajánlható"
+
+
