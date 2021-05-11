@@ -151,7 +151,3 @@ plt.xlabel('Popularity (0-100)')
 plt.ylabel('')
 plt.title('Song Popularity by Artist', fontweight='bold', fontsize=18)
 plt.savefig('top10_artist_popularity.jpg', bbox_inches="tight")
-
-
-
-#valami2
