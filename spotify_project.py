@@ -154,3 +154,4 @@ plt.savefig('top10_artist_popularity.jpg', bbox_inches="tight")
 
 
 
+#valami
