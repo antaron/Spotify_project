@@ -3,11 +3,10 @@ import pandas as pd
 import json
 import matplotlib.pyplot as plt
 import numpy as np
-import seaborn as sb
-
+import seaborn as sns
 from spotipy.oauth2 import SpotifyClientCredentials #To access authorised Spotify data
 from sklearn.preprocessing import MinMaxScaler
-
+#%%Adatok beolvasása
 client_id = "f427c4b4133c421cae669433d503d822"
 client_secret = "9ef7ad359ebe492da8bd73054dad6cbc"
 client_credentials_manager = SpotifyClientCredentials(client_id=client_id, client_secret=client_secret)
@@ -18,8 +17,7 @@ results = sp.playlist(playlist_id)
 
 """ saved = sp.current_user_saved_tracks()
 print(saved)  """
-
-#LIST GENERATING
+#%%Lista generálás
 
 # create a list of song ids
 ids = []
@@ -60,7 +58,7 @@ for song_id in ids:
     song_meta['popularity'].append(popularity)
 
 song_meta_df = pd.DataFrame.from_dict(song_meta)
-
+#%%
 # check the song feature
 features = sp.audio_features(song_meta['id'])
 # change dictionary to dataframe
@@ -71,12 +69,20 @@ features_df = pd.DataFrame.from_dict(features)
 # 1 minute = 60 seconds = 60 × 1000 milliseconds = 60,000 ms
 features_df['duration_ms'] = features_df['duration_ms'] / 60000
 
-# combine two dataframe
+#%% combine two dataframe - final data létrehozása
 final_df = song_meta_df.merge(features_df)
 
 pd.set_option('display.max_columns', None)
 
-#RADAR CHART
+artist_df = final_df.copy()
+
+#%%Elemzés 
+elemzes = final_df.describe()
+final_df.info()
+#%% Korrelációs mátrix 
+plt.figure(figsize=(8,8))
+sns.heatmap(final_df.corr(),annot=True)
+#%%RADAR CHART
 
 music_feature=features_df[['danceability','energy','loudness','speechiness',
 'acousticness','instrumentalness','liveness','valence','tempo','duration_ms']]
@@ -112,42 +118,101 @@ plt.fill(angles,value,alpha=0.3)
 
 plt.xticks(angles[:-1],categories, size=15)
 plt.yticks(color='grey',size=15)
-plt.savefig('favourite_category.jpg', bbox_inches="tight")
-
-#COUNT PLOT
-
-artist_df = final_df.copy()
-
-descending_order = artist_df['artist'].value_counts().sort_values(ascending=False).index
-ax = sb.countplot(y = artist_df['artist'], order=descending_order)
-
-sb.despine(fig=None, ax=None, top=True, right=True, left=False, trim=False)
-sb.set(rc={'figure.figsize':(6,7.2)})
-
-ax.set_ylabel('')    
-ax.set_xlabel('')
-ax.set_title('Songs per Artist Top 10', fontsize=16, fontweight='heavy')
-sb.set(font_scale = 1.4)
-ax.axes.get_xaxis().set_visible(False)
-ax.set_frame_on(False)
-
-y = artist_df['artist'].value_counts()
-for i, v in enumerate(y):
-    ax.text(v + 0.2, i + .16, str(v), color='black', fontweight='light', fontsize=14)
-    
-plt.savefig('top10_songs_per_artist.jpg', bbox_inches="tight")
+#plt.savefig('favourite_category.jpg', bbox_inches="tight")
 
 
-#Box plot
+#%%
+# =============================================================================
+# #COUNT PLOT
+# 
 
-popularity = artist_df['popularity']
-artists = artist_df['artist']
+# 
+# descending_order = artist_df['artist'].value_counts().sort_values(ascending=False).index
+# ax = sb.countplot(y = artist_df['artist'], order=descending_order)
+# 
+# sb.despine(fig=None, ax=None, top=True, right=True, left=False, trim=False)
+# sb.set(rc={'figure.figsize':(6,7.2)})
+# 
+# ax.set_ylabel('')    
+# ax.set_xlabel('')
+# ax.set_title('Songs per Artist Top 10', fontsize=16, fontweight='heavy')
+# sb.set(font_scale = 1.4)
+# ax.axes.get_xaxis().set_visible(False)
+# ax.set_frame_on(False)
+# 
+# y = artist_df['artist'].value_counts()
+# for i, v in enumerate(y):
+#     ax.text(v + 0.2, i + .16, str(v), color='black', fontweight='light', fontsize=14)
+#     
+# plt.savefig('top10_songs_per_artist.jpg', bbox_inches="tight")
+# =============================================================================
 
-plt.figure(figsize=(10,6))
+# =============================================================================
+# #%%
+# #Box plot
+# 
+# popularity = artist_df['popularity']
+# artists = artist_df['artist']
+# 
+# plt.figure(figsize=(10,6))
+# 
+# ax = sns.boxplot(x=popularity, y=artists, data=artist_df)
+# plt.xlim(20,90)
+# plt.xlabel('Popularity (0-100)')
+# plt.ylabel('')
+# plt.title('Song Popularity by Artist', fontweight='bold', fontsize=18)
+# plt.savefig('top10_artist_popularity.jpg', bbox_inches="tight")
+# =============================================================================
+#%%Mitől lesz jó egy szám?
+fig, axs = plt.subplots(4, 1, figsize=(9, 9), sharex=True)
+fig.text(0.5, 0.04, 'Score', ha='center',size=20)
+fig.text(0.04, 0.5, 'Number', va='center', rotation='vertical',size=20)
+axs[0].hist(final_df['danceability'])
+axs[0].set_title('Danceability')
+axs[1].hist(final_df['energy'])
+axs[1].set_title('Energy')
+axs[2].hist(final_df['liveness'])
+axs[2].set_title('Liveness')
+axs[3].hist(final_df['acousticness'])
+axs[3].set_title('Acousticness')
+fig.suptitle('Mitől lesz jó egy szám?',size=20)
+plt.show()
 
-ax = sb.boxplot(x=popularity, y=artists, data=artist_df)
-plt.xlim(20,90)
-plt.xlabel('Popularity (0-100)')
-plt.ylabel('')
-plt.title('Song Popularity by Artist', fontweight='bold', fontsize=18)
-plt.savefig('top10_artist_popularity.jpg', bbox_inches="tight")
+#%% Explicit chart
+labels= final_df['explicit'].value_counts()
+plt.figure(figsize=(12, 7))
+final_df['explicit'].value_counts().plot(kind='pie',
+             autopct='%1.0f%%', labeldistance=1.2 )
+plt.title('Mennyi explicit tartalom van a listán?', fontweight='bold', fontsize=16)
+
+#%%
+final_df.sort_values(by=['popularity'])
+
+
+
+#%% Top 20 előadó
+artist_new = artist_df['artist']
+
+df3 = artist_new.to_frame()
+df4 = pd.concat([df3['artist'].str.split(', ', expand=True)], axis=1)
+
+all_values = []
+for column in df4:
+    this_column_values = df4[column].tolist()
+    all_values += this_column_values
+
+one_column_df = pd.DataFrame(all_values)
+
+new_df = one_column_df.mask(one_column_df.eq('None')).dropna()
+
+new_df.rename(columns={0:'előadó'},inplace=True)
+
+new_df['count'] = new_df['előadó'].map(new_df['előadó'].value_counts())
+new = new_df.drop_duplicates()
+
+new2 = new.sort_values('count',ascending = False).head(20)
+
+plt.figure(figsize=(12, 7))
+ax= sns.barplot(x='count', y="előadó", data=new2)
+ax.set_xlabel('előfodulás a listában')
+ax.set_title('Top 20 előadó')
