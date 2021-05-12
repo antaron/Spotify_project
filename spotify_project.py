@@ -68,7 +68,7 @@ features_df = pd.DataFrame.from_dict(features)
 # 1 minute = 60 seconds = 60 × 1000 milliseconds = 60,000 ms
 features_df['duration_ms'] = features_df['duration_ms'] / 60000
 
-#%% combine two dataframe - final data létrehozása
+#%%Final data létrehozása
 final_df = song_meta_df.merge(features_df)
 
 pd.set_option('display.max_columns', None)
@@ -82,7 +82,9 @@ final_df.info()
 #%% Korrelációs mátrix 
 plt.figure(figsize=(8,8))
 sns.heatmap(final_df.corr(),annot=True)
-#%%RADAR CHART
+
+plt.title('Korrelációs mátrix',  fontsize=16)
+#%%Radar Chart
 
 music_feature=features_df[['danceability','energy','loudness','speechiness',
 'acousticness','instrumentalness','liveness','valence','tempo','duration_ms']]
@@ -119,33 +121,10 @@ plt.fill(angles,value,alpha=0.3)
 # plt.title('Discovery Weekly Songs Audio Features', size=35)
 
 plt.xticks(angles[:-1],categories, size=15)
-plt.yticks(color='grey',size=15)
+plt.yticks(color='blue',size=15)
 #plt.savefig('favourite_category.jpg', bbox_inches="tight")
 
-plt.title('Milyen feature-ök a legfontosabbak egy számban?', fontweight='bold', fontsize=16)
-#%% Összehasonlítandó értékek elkészítése
-elemzes2 = feature_vizsgalat.mean()
-elemzes3 = elemzes2.sort_values(0,ascending = False).head(2)
-
-#%% 
-elemzes3 = elemzes3.to_frame()
-
-#%%
-elemzes3 = elemzes3.transpose()
-#%%
-elemzes3['First_max'] = 0
-elemzes3['First_min'] = 0
-elemzes3['Second_max'] = 0
-elemzes3['Second_min'] = 0
-
-elemzes3['First_max'] = elemzes3.iloc[0, 0] + 0.1
-elemzes3['First_min'] = elemzes3.iloc[0, 0] - 0.1
-elemzes3['Second_max'] = elemzes3.iloc[0, 1] + 0.1
-elemzes3['Second_min'] = elemzes3.iloc[0, 1] - 0.1
-
-first = elemzes3.columns[0]
-second = elemzes3.columns[1]
-
+plt.title('Milyen feature-ök a legfontosabbak egy számban?',  fontsize=16)
 
 
 #%%Mitől lesz jó egy szám?
@@ -171,7 +150,7 @@ plt.figure(figsize=(12, 7))
 final_df['explicit'].value_counts().plot(kind='pie',
              autopct='%1.0f%%', labeldistance=1.2, colors = ['#2CCBC0', '#4B58A9'] )
 
-plt.title('Mennyi explicit tartalom van a listán?', fontweight='bold', fontsize=16)
+plt.title('Mennyi explicit tartalom van a listán?', fontsize=16)
 
 #%% Top 20 előadó
 artist_new = artist_df['artist']
@@ -195,14 +174,34 @@ new = new_df.drop_duplicates()
 
 new2 = new.sort_values('count',ascending = False).head(20)
 
-plt.figure(figsize=(12, 7))
+plt.figure(figsize=(14, 8))
 ax= sns.barplot(x='count', y="előadó", data=new2, palette=("Blues_d"))
-ax.set_xlabel('Előfordulás a listában')
-ax.set_ylabel('Előadó neve')
-ax.set_title('Top 20 előadó')
+ax.set_xlabel('Előfordulás a listában', fontsize=12)
+ax.set_ylabel('Előadó neve', fontsize=12)
+ax.set_title('Top 20 előadó', fontsize=16)
 
+#%% Összehasonlítandó értékek elkészítése
+elemzes2 = feature_vizsgalat.mean()
+elemzes3 = elemzes2.sort_values(0,ascending = False).head(2)
 
+#%% 
+elemzes3 = elemzes3.to_frame()
 
+#%%
+elemzes3 = elemzes3.transpose()
+#%%
+elemzes3['First_max'] = 0
+elemzes3['First_min'] = 0
+elemzes3['Second_max'] = 0
+elemzes3['Second_min'] = 0
+
+elemzes3['First_max'] = elemzes3.iloc[0, 0] + 0.1
+elemzes3['First_min'] = elemzes3.iloc[0, 0] - 0.1
+elemzes3['Second_max'] = elemzes3.iloc[0, 1] + 0.1
+elemzes3['Second_min'] = elemzes3.iloc[0, 1] - 0.1
+
+first = elemzes3.columns[0]
+second = elemzes3.columns[1]
 #%% Global 50
 playlist_id_global='spotify:playlist:37i9dQZEVXbMDoHDwVN2tF' #insert your playlist id
 results_global = sp.playlist(playlist_id_global) 
@@ -250,7 +249,7 @@ for song_id in ids:
     song_meta['popularity'].append(popularity)
 
 song_meta_df = pd.DataFrame.from_dict(song_meta)
-#%%
+
 # check the song feature
 features_global = sp.audio_features(song_meta['id'])
 # change dictionary to dataframe
@@ -261,7 +260,7 @@ features_df_global = pd.DataFrame.from_dict(features_global)
 # 1 minute = 60 seconds = 60 × 1000 milliseconds = 60,000 ms
 features_df_global['duration_ms'] = features_df_global['duration_ms'] / 60000
 
-#%% combine two dataframe - final data létrehozása
+#%%final data létrehozása
 global_final_df = song_meta_df.merge(features_df_global)
 
 feature_vizsgalat_global=global_final_df[['album','artist','name','danceability','energy','speechiness',
@@ -273,10 +272,10 @@ feature_vizsgalat_global.loc[(feature_vizsgalat_global[first] < elemzes3.iloc[0,
 feature_vizsgalat_global.loc[((feature_vizsgalat_global[first] < elemzes3.iloc[0, 2]) & (feature_vizsgalat_global[first] > elemzes3.iloc[0, 3])) | ((feature_vizsgalat_global[second] < elemzes3.iloc[0, 4]) & (feature_vizsgalat_global[second] > elemzes3.iloc[0, 5])) & ((feature_vizsgalat_global[first] < elemzes3.iloc[0, 2]) & (feature_vizsgalat_global[first] > elemzes3.iloc[0, 3]) & (feature_vizsgalat_global[second] < elemzes3.iloc[0, 4]) & (feature_vizsgalat_global[second] > elemzes3.iloc[0, 5])) == False , "recommended"] = "Részleges egyezés"
 feature_vizsgalat_global.loc[feature_vizsgalat_global["recommended"].isnull(), "recommended"] = "Nincs egyezés"
 
-#%%
+#%% Új oszlop
 feature_vizsgalat_global['track'] = feature_vizsgalat_global['artist'] + ': '+ feature_vizsgalat_global['name']
 
-#%%
+#%% Ajánlás kiiratása
 pd.set_option("max_colwidth", 100)
 ajanlott =feature_vizsgalat_global[feature_vizsgalat_global['recommended']=='Teljes egyezés']['track']
 print('Kifejezetten ajánlott: ', ajanlott.to_string(index=False))
@@ -287,7 +286,7 @@ print('Közepesen ajánlott: ', kozepes.to_string(index=False))
 nemajanlott =feature_vizsgalat_global[feature_vizsgalat_global['recommended']=='Nincs egyezés']['track']
 print('Nem ajánlott: ', nemajanlott.to_string(index=False))
 
-#%%
+#%%Eloszlás diagram
 plt.figure(figsize=(12, 7))
 bx = sns.countplot(x="recommended", data=feature_vizsgalat_global, palette="Set3")
 bx.set_xlabel('Egyezés')
