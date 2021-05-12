@@ -10,10 +10,8 @@ Antal Áron - PR56BP
 
 Lőrincz Barna Kálmán - IE0YXU 
 
-Téma: Spotify elemzés és mild AI építés 
+Téma: Spotify elemzés és ajánlási rendszer építés
 
-A kedveltek mappa nem megosztható. Ennek kiküszöbölésére döntött úgy a csapatunk, hogy az imént említett mappát leszinkronizálja és api segítségével egy megosztható lejátszási listába rakja. 
+Egy a felhasználó által megadott listából, elemzés készítése.
 
-Egy előre definiált adatbázisból értékes vizualizáció létrehozása. 
-
-A fent említett kedveltek mappából a zeneszámok top 3 kategóriája alapján, létrehoz a top albumokból egy a usernek potenciálisan tetsző lejátszási listát. 
+A megadott lista alapján a top 2 zenei tulajdonság kategóriáján keresztül ajánlás a global top 50 listából.
